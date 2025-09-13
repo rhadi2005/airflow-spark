@@ -1,11 +1,28 @@
 FROM apache/airflow:2.10.4
 
-RUN pip install apache-airflow-providers-apache-spark
-
 USER root
 RUN apt-get update
+
+RUN apt-get install -y wget unzip  
+
 RUN apt-get install -y --no-install-recommends openjdk-17-jdk
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# RUN apt-get update \
+#     && apt-get install -y gcc musl-dev python3-dev libc-dev libaio1 \
+#     && apt-get install -y libc6-compat gcompat libnsl libaio 
+# RUN ln -s /usr/lib/libnsl.so.3 /usr/lib/libnsl.so.1
+
+
+# Install Oracle Client
+# RUN wget https://download.oracle.com/otn_software/linux/instantclient/2119000/instantclient-basic-linux.x64-21.19.0.0.0dbru.zip
+# RUN echo "unzip oracle client" \
+#     && unzip instantclient-basic-linux.x64-21.19.0.0.0dbru.zip -d /opt/oracle
+# RUN echo "delete oracle client installer" \
+#     && rm instantclient-basic-linux.x64-21.19.0.0.0dbru.zip
+# ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_21_19:$LD_LIBRARY_PATH
+# ENV PATH=/opt/oracle/instantclient_21_19:$PATH
+
 
 ENV SPARK_HOME="/home/sparkuser/spark"
 ENV JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
@@ -22,6 +39,14 @@ RUN curl https://dlcdn.apache.org/spark/spark-3.5.6/spark-3.5.6-bin-hadoop3.tgz 
     && tar xvzf spark-3.5.6-bin-hadoop3.tgz --directory ${SPARK_HOME} --strip-components 1 \
     && rm -rf spark-3.5.6-bin-hadoop3.tgz
 
+# Download postgres jar and add it to spark jars
+RUN wget -P ${SPARK_HOME}/jars/ https://jdbc.postgresql.org/download/postgresql-42.7.4.jar;
+
+# Download aws jar and add it to spark jars
+RUN wget -P ${SPARK_HOME}/jars/ https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar;
+RUN wget -P ${SPARK_HOME}/jars/ https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.262/aws-java-sdk-bundle-1.12.262.jar;
+
+
 RUN useradd -u 1000 -m -d /home/sparkuser sparkuser
 ENV HOME="/home/sparkuser"
 RUN chown -R airflow:sparkuser ${SPARK_HOME}
@@ -29,6 +54,9 @@ RUN chown -R airflow:sparkuser ${SPARK_HOME}
 RUN apt update
 RUN apt-get -y install procps
 
+
 COPY ./spark-defaults.conf "${SPARK_HOME}/conf"
 
 USER airflow
+
+RUN pip install apache-airflow-providers-apache-spark oracledb==3.2.0

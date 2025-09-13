@@ -1,0 +1,14 @@
+
+export SPARK_MASTER=local[2]
+export SPARK_LOCAL_HOSTNAME=localhost
+
+export PYTHONPATH="$(pwd):../src:../../ofe-shrd-common-lib/src:${PYTHONPATH}"
+
+export FLOWMAN_HOME="../bin/flowman"
+export PATH="${FLOWMAN_HOME}/bin:${PATH}"
+
+if ! [ -d ofe-slv-servlevel-service ]; then
+    export APPDIR="../../ofe-slv-servlevel-service/src"
+else
+    export APPDIR="ofe-slv-servlevel-service/src"
+fi
