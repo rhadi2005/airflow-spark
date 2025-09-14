@@ -48,6 +48,6 @@ echo
 echo
 # sudo docker ps | grep cgo
 echo
-echo "sudo docker exec -it cgo-$(id -nu) bash"
+# echo "sudo docker exec -it cgo-$(id -nu) bash"
 echo
 
